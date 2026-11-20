@@ -27,6 +27,29 @@ export function formatDuration(ms) {
   return `${Math.round(months / 12)}y`
 }
 
+// Clipboard write with an execCommand fallback for non-secure contexts.
+// Returns true only if the copy actually succeeded.
+export async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    try {
+      const textarea = document.createElement('textarea')
+      textarea.value = text
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      const ok = document.execCommand('copy')
+      textarea.remove()
+      return ok
+    } catch {
+      return false
+    }
+  }
+}
+
 export function timeAgo(dateString) {
   if (!dateString) return '—'
   const then = new Date(dateString).getTime()

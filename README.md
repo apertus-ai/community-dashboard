@@ -1,142 +1,61 @@
-# Hugging Face Tracker
+# Apertus Impact Tracker
 
-_A fast loading, open source, data-rich dashboard where every interaction surfaces insights effortlessly._
+_Live, self-serve impact metrics for the Apertus models — the numbers behind our slides, flyers and news posts, gathered automatically from public APIs._
 
-The dashboard runs with **zero configuration** — everything it shows is live public data from the Hugging Face and GitHub APIs. Two **optional** tokens (set them in `.env`, see `.env.example` for the template) exist only to lift rate limits, never to gate data: `VITE_HF_TOKEN` from the [Hugging Face Access Tokens](https://huggingface.co/settings/tokens) page (fine-grained, read-public is enough) and `VITE_GITHUB_TOKEN`, a [fine-grained GitHub PAT](https://github.com/settings/personal-access-tokens) with no extra scopes, which lifts the 60 req/hour unauthenticated GitHub limit to 5,000/hour.
+Apertus reports its impact to academic and industry partners through presentation slides, flyers and the [online news area](https://apertus-ai.org). Collecting those numbers by hand is slow to do and stale by the time it's needed. This project is the tool for doing it easily instead: one dashboard that pulls adoption and community-impact data for the Apertus model family (plus peer models for honest comparison) straight from the public Hugging Face and GitHub APIs.
 
-Then install and run using:
+It runs with **zero configuration** and shows **live public data only** — nothing simulated, nothing cached.
 
-```
+## Why this exists
+
+- Partners need a **clear, comprehensive, regular** overview of Apertus impact.
+- The same headline numbers are reused across slides, flyers and news posts — one source of truth keeps them consistent.
+- Manual collection doesn't scale and can't be reproduced after the fact.
+- The collection logic in this repo is exactly what a **CI job or API** can run later (see [Roadmap](#roadmap)).
+
+## Quick start
+
+```bash
 npm install
 npm run dev
 ```
 
----
+Then open the printed URL. Two **optional** tokens (put them in `.env`, see `.env.example` for the template) lift API rate limits but never gate data:
 
-Created using [OpenHands](https://openhands.dev) with the [GLM-5](https://glm5.net) model, using this prompt:
+| Token | Get it here | Effect |
+| --- | --- | --- |
+| `VITE_HF_TOKEN` | [Hugging Face Access Tokens](https://huggingface.co/settings/tokens) (fine-grained, read-public is enough) | Lifts Hugging Face rate limits |
+| `VITE_GITHUB_TOKEN` | [GitHub fine-grained PAT](https://github.com/settings/personal-access-tokens) (no extra scopes) | GitHub: 60 → 5,000 req/hour |
 
-Create a **clean, elegant, and interactive** web dashboard that visualizes the **30-day public download counts** of leading open-source LLM models (and their top 5 variants) from Hugging Face. The dashboard should prioritize **clarity, responsiveness, and user engagement**, with a focus on **line graphs** for trend analysis and **interactive filters** for customization.
+## What it tracks
 
-### **Technical Requirements**
+| Panel | The question it answers for partners | Source |
+| --- | --- | --- |
+| **Downloads & peer comparison** | How much are the Apertus models downloaded, next to comparable projects? | Hugging Face Hub API |
+| **Ecosystem** | What has the community built on top — finetunes, adapters, quantizations, merges, Spaces, datasets? | Hugging Face Hub API |
+| **Contributions** | Who is doing the work, and how much comes from outside the core team? | GitHub REST API |
+| **Community health** | Do people get answers? Resolution rate, median first response, unanswered threads | Hugging Face discussions API |
 
-#### **1. Data Sourcing**
-- Use the **Hugging Face Hub API** to fetch:
-  - **Download counts** (last 30 days) for base models and top 5 variants.
-  - **Metadata**: Model size (parameters), release date, and variant names.
-  - **API Endpoint**: `https://huggingface.co/api/models/{model_id}/stats` (for download stats).
-  - **Authentication**: Use Hugging Face access tokens for authorized requests.
-  - **Rate Limiting**: Implement retries and caching to handle API limits gracelessly.
+### Copy a report
 
-#### **2. Models and Variants to Include**
-| Base Model      | Top 5 Variants (if available)                     |
-|-----------------|---------------------------------------------------|
-| OpenEuroLLM     | Base, [4 others]                                  |
-| EuroLLM         | 22B, [4 others]                                   |
-| Olmo            | Olmo 3-Base 7B, Olmo 3-Base 32B, [3 others]      |
-| Apertus         | Apertus-SEA-LION-v4-8B-IT, [4 others]            |
-| Qwen            | Qwen3-235B-A22B, Qwen3-Coder-Next, [3 others]     |
-| Mistral         | Mixtral 8x22B, Mistral 7B Instruct, [3 others]   |
-| SEA-LION        | [Top 5 variants]                                  |
-| GLM             | GLM 4.6, [4 others]                              |
-| K2 Kimi         | Kimi K2.5, Kimi K2-Instruct-0905, [3 others]      |
+The **Copy summary** button in the header puts a paste-ready Markdown report of the current numbers on your clipboard: the selected model's headline stats, the peer-comparison table, the GitHub external-contribution share, top org datasets and community health — each report stamped with its generation time. That block is what goes into a slide note, flyer draft or news post, so every channel quotes the same figures.
 
-#### **3. Visualization Specifications**
-- **Primary Visualization**: **Line graphs** for 30-day download trends.
-  - **X-axis**: Date (last 30 days).
-  - **Y-axis**: Download count.
-  - **Lines**: One per model/variant, with unique colors and labels.
-  - **Tooltips**: Show exact download count, model size, and release date on hover.
-- **Secondary Visualization**: **Metadata table** (sortable/filterable) with:
-  - Model name, variant, parameters, release date, total downloads.
-- **Interactive Features**:
-  - Toggle visibility of models/variants (legend or sidebar).
-  - Adjust time range (default: 30 days).
-  - Filter by model size or release date.
+### Updating the tracked models and repos
 
-#### **4. Technical Stack**
-- **Frontend**:
-  - **Framework**: React.js (for interactivity) or Vue.js.
-  - **Visualization**: Highcharts, Chart.js, or D3.js for line graphs.
-  - **UI Components**: Use a library like Material-UI or Tailwind CSS for responsive design.
-  - **State Management**: Redux or Context API for handling user filters.
-- **Backend** (if needed):
-  - **Language**: Python (Flask/FastAPI) or Node.js.
-  - **API Calls**: Fetch and cache Hugging Face data.
-  - **Data Processing**: Aggregate daily download counts for smooth trends.
-- **Deployment**:
-  - Host on Vercel, Netlify, or GitHub Pages for static frontends.
-  - Use Docker + AWS/Heroku for full-stack apps.
+Everything tracked lives in [`src/config.js`](src/config.js) — no other code changes needed:
 
-#### **5. Design Principles**
-- **Color Scheme**: Use a **distinct, accessible palette** (e.g., [ColorBrewer](https://colorbrewer2.org/)).
-- **Typography**: Clean, modern fonts (e.g., Inter, Roboto).
-- **Layout**: Single-page, grid-based with collapsible sections for metadata.
-- **Responsiveness**: Mobile-first design (test on Chrome DevTools).
-- **Loading States**: Skeletons/spinners for API data fetching.
+- `MODELS` — model ids on the Hugging Face Hub. The first entry is a deliberate blank sentinel that keeps the header's model selector unselected on start; leave it in place.
+- `TRACKED_REPOS` — `swiss-ai` repositories surfaced in the Contributions panel.
+- `GITHUB_ORG` / `HF_ORG` — the orgs all queries run against.
 
-#### **6. Example Code Snippets**
-```javascript
-// React + Highcharts Example
-import Highcharts from 'highcharts';
-import HighchartsReact from 'highcharts-react-official';
+## Roadmap
 
-const Dashboard = ({ data }) => {
-  const options = {
-    title: { text: 'LLM Model Download Trends (Last 30 Days)' },
-    xAxis: { type: 'datetime' },
-    yAxis: { title: { text: 'Download Count' } },
-    series: data.map(model => ({
-      name: model.name,
-      data: model.downloads,
-      color: model.color,
-    })),
-    tooltip: {
-      pointFormat: `
-        <b>{series.name}</b><br/>
-        Downloads: {point.y}<br/>
-        Size: {point.size}B<br/>
-        Released: {point.releaseDate}
-      `,
-    },
-  };
-  return <HighchartsReact highcharts={Highcharts} options={options} />;
-};
-```
+The dashboard already replaces the manual collection step. Next steps, in rough order:
 
-```python
-# Python Backend Example (Flask)
-from flask import Flask, jsonify
-import requests
+1. **CI snapshots** — a scheduled GitHub Action that runs the same collection and commits a dated JSON snapshot, so trends are archived and slides can cite historical numbers.
+2. **JSON export** — serve the summary as static JSON so the news area and other tools can embed the numbers directly.
+3. **Automated refresh** — CI-generated figures feeding the site automatically, with this dashboard as the human-readable view.
 
-app = Flask(__name__)
+## Origin
 
-@app.route('/api/downloads')
-def get_downloads():
-    models = ["OpenEuroLLM", "Mistral", ...]  # List all models
-    data = []
-    for model in models:
-        response = requests.get(f"https://huggingface.co/api/models/{model}/stats")
-        data.append(response.json())
-    return jsonify(data)
-```
-
-#### **7. Helpful References**
-- **Hugging Face API Docs**: [https://huggingface.co/docs/hub/api](https://huggingface.co/docs/hub/api)
-- **Highcharts Tutorial**: [https://www.highcharts.com/docs](https://www.highcharts.com/docs)
-- **React + D3.js Guide**: [https://react.d3js.org/](https://react.d3js.org/)
-- **Color Accessibility**: [https://webaim.org/resources/contrastchecker/](https://webaim.org/resources/contrastchecker/)
-- **Responsive Design**: [https://getbootstrap.com/docs/5.3/layout/grid/](https://getbootstrap.com/docs/5.3/layout/grid/)
-
----
-
-### **Deliverables**
-1. **Interactive Dashboard**: Deployed web app with:
-   - Line graphs for download trends.
-   - Filters for models, time range, and metadata.
-   - Metadata table.
-2. **Code Repository**: GitHub repo with:
-   - Frontend (React/Vue) + backend (if applicable).
-   - README with setup instructions.
-3. **Documentation**: Brief guide on how to update models/data.
-
-
+Originally built with [OpenHands](https://openhands.dev) and the [GLM-5](https://glm5.net) model, then reshaped into the Apertus Impact Tracker.

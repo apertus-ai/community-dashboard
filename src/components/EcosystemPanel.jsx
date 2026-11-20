@@ -31,7 +31,8 @@ export function EcosystemPanel({ model, datasets, modelName }) {
       </h2>
       <p className="text-gray-400 text-sm mb-4">
         What the community has built on top of {modelName ?? 'this model'} — derived models, Spaces and
-        datasets. This is the part no download counter can fake.
+        datasets. This is the part no download counter can fake, and the clearest adoption signal
+        for partners.
       </p>
 
       {unavailable && (
