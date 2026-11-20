@@ -17,8 +17,8 @@ export function ContributionsPanel({ pulse, repos }) {
     <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
       <h2 className="text-lg font-semibold mb-1">Contributions</h2>
       <p className="text-gray-400 text-sm mb-4">
-        Who is actually doing the work — external contributors vs the core team, across the org's
-        GitHub repositories.
+        Who is actually doing the work — external contributors vs the core team, across the
+        Apertus org's public GitHub repositories.
       </p>
 
       {unavailable && (

@@ -1,7 +1,7 @@
 {
-  "name": "swiss-ai-observatory",
-  "version": "1.0.0",
-  "description": "Interactive dashboard for monitoring the community impact of Apertus and other research in the Swiss AI Initiative",
+  "name": "apertus-impact-tracker",
+  "version": "1.1.0",
+  "description": "Live impact dashboard for the Apertus models — adoption and community metrics behind the slides, flyers and news posts, gathered automatically from public APIs",
   "type": "module",
   "scripts": {
     "dev": "vite",

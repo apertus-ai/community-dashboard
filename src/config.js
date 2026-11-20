@@ -1,4 +1,4 @@
-// Central configuration for the Apertus community dashboard.
+// Central configuration for the Apertus Impact Tracker.
 //
 // Everything here refers to public Hugging Face / GitHub entities, so the
 // dashboard runs with zero configuration. Optional API tokens (see
@@ -20,6 +20,8 @@ export const TRACKED_REPOS = [
 // only). This distinction is the honest way to compare projects that release
 // different amounts of their stack.
 export const MODELS = [
+  // Deliberate blank first entry: keeps the header's model selector
+  // unselected on start. Data-driven views skip it; leave it in place.
   { id: '', name: '', openness: '' },
   { id: 'swiss-ai/Apertus-v1.5-70B', name: 'Apertus 1.5 70B', openness: 'swiss-ai' },
   { id: 'swiss-ai/Apertus-v1.5-8B', name: 'Apertus 1.5 8B', openness: 'swiss-ai' },
@@ -40,6 +42,6 @@ export const OPENNESS_LABELS = {
 }
 
 export const OPENNESS_DESCRIPTIONS = {
-  'swiss-ai': '',
+  'swiss-ai': 'Apertus — weights, training data and code all public',
   'fully-open': '(Weights, training data and code)',
 }

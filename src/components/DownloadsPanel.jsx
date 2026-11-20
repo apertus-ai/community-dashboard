@@ -39,12 +39,16 @@ export function DownloadsPanel({ models, selectedModelId }) {
   const [sortKey, setSortKey] = useState('downloads')
   const [sortOrder, setSortOrder] = useState('desc')
 
+  // Skip the blank sentinel entry from config — it's only there to keep the
+  // header's model selector unselected on start.
   const withDerived = useMemo(
     () =>
-      (models ?? []).map((model) => ({
-        ...model,
-        derived: derivedTotal(model),
-      })),
+      (models ?? [])
+        .filter((model) => model.id)
+        .map((model) => ({
+          ...model,
+          derived: derivedTotal(model),
+        })),
     [models]
   )
 
@@ -100,8 +104,9 @@ export function DownloadsPanel({ models, selectedModelId }) {
         <div>
           <h2 className="text-lg font-semibold">Downloads &amp; peer comparison</h2>
           <p className="text-gray-400 text-sm">
-            30-day downloads per model, grouped by how much of the stack is open — the honest way
-            to compare projects releasing different amounts.
+            The headline numbers partners see first: 30-day downloads per model, grouped by how
+            much of the stack is open — the honest way to compare projects releasing different
+            amounts.
           </p>
         </div>
         <div className="flex items-center gap-2">

@@ -6,7 +6,8 @@ import { DownloadsPanel } from './components/DownloadsPanel'
 import { EcosystemPanel } from './components/EcosystemPanel'
 import { ContributionsPanel } from './components/ContributionsPanel'
 import { CommunityHealthPanel } from './components/CommunityHealthPanel'
-import { formatCompact, formatDuration } from './utils'
+import { buildImpactSummary } from './impactSummary'
+import { copyToClipboard, formatCompact, formatDuration } from './utils'
 
 // Never let one failing source take down the whole dashboard. GitHub rate
 // limits get a dedicated, actionable notice instead of a silent null.
@@ -26,6 +27,9 @@ function App() {
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [githubNotice, setGithubNotice] = useState(null)
+  // idle → copied → failed → idle; drives the Copy summary button label.
+  const [summaryState, setSummaryState] = useState('idle')
+  const copyTimer = useRef(null)
 
   // The model the model-specific panels (ecosystem, community health, stat
   // cards) are calculated for. Switching recycles the cached per-model info
@@ -111,16 +115,35 @@ function App() {
     ? Object.values(selectedInfo.childrenModelCount ?? {}).reduce((sum, n) => sum + n, 0)
     : null
 
+  // The paste-ready Markdown report behind the header's Copy summary button —
+  // the numbers that go into slides, flyers and news posts, from live state.
+  const handleCopySummary = useCallback(async () => {
+    const summary = buildImpactSummary({
+      models,
+      selectedInfo,
+      selectedModelName,
+      pulse,
+      health,
+      datasets,
+      repos,
+      generatedAt: lastUpdated ?? new Date(),
+    })
+    const ok = await copyToClipboard(summary)
+    setSummaryState(ok ? 'copied' : 'failed')
+    clearTimeout(copyTimer.current)
+    copyTimer.current = setTimeout(() => setSummaryState('idle'), 2500)
+  }, [models, selectedInfo, selectedModelName, pulse, health, datasets, repos, lastUpdated])
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
       <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">Apertus Community Dashboard</h1>
+            <h1 className="text-2xl font-bold text-white">Apertus Impact Tracker</h1>
             <p className="text-gray-400 text-sm">
-              Live community &amp; ecosystem metrics for the Swiss AI Initiative — no demo data,
-              ever.
+              Live adoption &amp; community impact metrics for the Apertus models — the numbers
+              behind the slides, flyers and news posts, gathered automatically from public APIs.
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -158,6 +181,17 @@ function App() {
                 )}
               </span>
             </div>
+            <button
+              onClick={handleCopySummary}
+              disabled={loading}
+              className="px-4 py-1.5 bg-gray-700 hover:bg-gray-600 border border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm font-medium transition-colors"
+            >
+              {summaryState === 'copied'
+                ? 'Copied ✓'
+                : summaryState === 'failed'
+                  ? 'Copy failed'
+                  : 'Copy summary'}
+            </button>
             <button
               onClick={loadAll}
               disabled={refreshing}
@@ -216,18 +250,32 @@ function App() {
         <CommunityHealthPanel health={health} modelName={selectedModelName} />
 
         {/* Honesty footer */}
-        <footer className="text-center text-gray-500 text-xs py-4">
-          All numbers come live from the Hugging Face and GitHub public APIs at render time —
-          nothing on this page is simulated or cached. Source code:{' '}
-          <a
-            href="https://github.com/swiss-ai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gray-400 hover:text-blue-400"
-          >
-            swiss-ai on GitHub
-          </a>
-          .
+        <footer className="text-center text-gray-500 text-xs py-4 space-y-1">
+          <p>
+            All numbers come live from the Hugging Face and GitHub public APIs at render time —
+            nothing on this page is simulated or cached. Built to keep the impact numbers in our
+            slides, flyers and news posts current without manual collection.
+          </p>
+          <p>
+            Source &amp; data:{' '}
+            <a
+              href="https://github.com/swiss-ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 hover:text-blue-400"
+            >
+              swiss-ai on GitHub
+            </a>{' '}
+            ·{' '}
+            <a
+              href="https://huggingface.co/swiss-ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 hover:text-blue-400"
+            >
+              swiss-ai on Hugging Face
+            </a>
+          </p>
         </footer>
       </main>
     </div>
